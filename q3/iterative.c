@@ -1,6 +1,22 @@
 /* FIXME: Implement! */
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
+
+#define REPEAT_NUM 500
+
+static double diff_in_second(struct timespec t1, struct timespec t2)
+{
+    struct timespec diff;
+    if (t2.tv_nsec-t1.tv_nsec < 0) {
+        diff.tv_sec  = t2.tv_sec - t1.tv_sec - 1;
+        diff.tv_nsec = t2.tv_nsec - t1.tv_nsec + 1000000000;
+    } else {
+        diff.tv_sec  = t2.tv_sec - t1.tv_sec;
+        diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
+    }
+    return (diff.tv_sec + diff.tv_nsec / 1000000000.0);
+}
 
 typedef struct tree_node {
     int data;
@@ -69,13 +85,26 @@ void flatten(TreeNode *root)
 
 int main()
 {
-    TreeNode *head = CreateTestTree();
-    flatten(head);
+    struct timespec start, end;
+    double cpu_time, total_time = 0;
+
+    for (int i=0; i<REPEAT_NUM; i++) {
+        TreeNode *head = CreateTestTree();
+        clock_gettime(CLOCK_REALTIME, &start);
+        flatten(head);
+        clock_gettime(CLOCK_REALTIME, &end);
+        cpu_time = diff_in_second(start, end);
+        total_time += cpu_time;
+    }
+    /*
     printf("%d->%d->%d->%d->%d->%d\n",head->data,
            head->right->data,
            head->right->right->data,
            head->right->right->right->data,
            head->right->right->right->right->data,
            head->right->right->right->right->right->data);
+           */
+    printf("Total excution time of q3_iterative :%lf secs for %d times\n", total_time,REPEAT_NUM);
+
     return 0;
 }
